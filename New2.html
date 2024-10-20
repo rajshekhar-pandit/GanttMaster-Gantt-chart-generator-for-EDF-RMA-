@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gantt Chart for EDF & RMA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(120deg, #4011da, #57c6f5);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="range"], input[type="number"], input[type="text"] {
+            margin: 5px;
+            padding: 5px;
+        }
+
+        .process {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        #gantt-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        #gantt-chart {
+            display: flex;
+            border: 1px solid #000;
+            overflow-x: auto;
+            padding: 10px;
+            white-space: nowrap;
+            gap: 5px; /* Small gap between processes */
+        }
+
+        .gantt-block {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            padding: 10px;
+            border-right: 1px solid black;
+        }
+
+        /* Colors for different processes */
+        .block-1 { background-color: #4caf50; } /* Green */
+        .block-2 { background-color: #2196f3; } /* Blue */
+        .block-3 { background-color: #ff9800; } /* Orange */
+        .block-4 { background-color: #9c27b0; } /* Purple */
+        .block-5 { background-color: #f44336; } /* Red */
+
+        .time-info {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>EDF and RMA Scheduling - Gantt Chart Generator</h1>
+
+    <div class="controls">
+        <label for="numProcesses">Number of Processes:</label>
+        <input type="number" id="numProcesses" min="1" max="10" value="3">
+        <button id="generateInputs">Generate Process Inputs</button>
+    </div>
+
+    <div id="processInputs"></div>
+
+    <div class="controls">
+        <label for="arrivalTime">Arrival Time: <span id="arrivalValue">0</span></label>
+        <input type="range" id="arrivalTime" min="0" max="200" step="1" value="0">
+        
+        <button id="generateEDF">Generate EDF Gantt Chart</button>
+        <button id="generateRMA">Generate RMA Gantt Chart</button>
+    </div>
+
+    <div id="gantt-container">
+        <h2>Gantt Chart</h2>
+        <div id="gantt-chart"></div>
+    </div>
+
+    <div id="time-info-container" class="time-info"></div>
+
+    <script>
+        // Handle arrival time slider change
+        document.getElementById('arrivalTime').addEventListener('input', function () {
+            document.getElementById('arrivalValue').innerText = this.value;
+        });
+
+        // Generate process input fields based on the number of processes
+        document.getElementById('generateInputs').addEventListener('click', function () {
+            const numProcesses = parseInt(document.getElementById('numProcesses').value);
+            const processInputs = document.getElementById('processInputs');
+            processInputs.innerHTML = ''; // Clear previous inputs
+
+            for (let i = 1; i <= numProcesses; i++) {
+                processInputs.innerHTML += `
+                    <div class="process">
+                        <label>Process ${i} Name: </label>
+                        <input type="text" id="name${i}" placeholder="P${i}" value="P${i}">
+                        <label>Arrival: </label>
+                        <input type="number" id="arrival${i}" min="0" value="${i - 1}">
+                        <label>Duration: </label>
+                        <input type="number" id="duration${i}" min="1" value="2">
+                    </div>
+                `;
+            }
+        });
+
+        // Generate the Gantt chart for the selected algorithm
+        document.getElementById('generateEDF').addEventListener('click', function () {
+            generateGanttChart('EDF');
+        });
+
+        document.getElementById('generateRMA').addEventListener('click', function () {
+            generateGanttChart('RMA');
+        });
+
+        function generateGanttChart(algorithm) {
+            const arrivalTime = parseInt(document.getElementById('arrivalTime').value);
+            const ganttChart = document.getElementById('gantt-chart');
+            const timeInfoContainer = document.getElementById('time-info-container');
+            ganttChart.innerHTML = ''; // Clear previous chart
+            timeInfoContainer.innerHTML = ''; // Clear previous time info
+
+            const tasks = [];
+            const numProcesses = parseInt(document.getElementById('numProcesses').value);
+
+            // Collect input values for all processes
+            for (let i = 1; i <= numProcesses; i++) {
+                const name = document.getElementById(`name${i}`).value;
+                const arrival = parseInt(document.getElementById(`arrival${i}`).value);
+                const duration = parseInt(document.getElementById(`duration${i}`).value);
+                tasks.push({ name, arrival, duration });
+            }
+
+            // Sort tasks for EDF or keep original order for RMA
+            if (algorithm === 'EDF') {
+                tasks.sort((a, b) => a.arrival - b.arrival);
+            }
+
+            let currentTime = arrivalTime;
+
+            tasks.forEach((task, index) => {
+                const block = document.createElement('div');
+                block.className = `gantt-block block-${(index % 5) + 1}`; // Cycle through colors
+                block.style.width = `${task.duration * 50}px`; // Adjust block size
+                block.innerText = `${task.name}`;
+
+                ganttChart.appendChild(block);
+
+                // Add time info below the Gantt chart
+                const timeInfo = document.createElement('div');
+                timeInfo.innerText = `${task.name}: Arrival = ${task.arrival}, End = ${task.arrival + task.duration}`;
+                timeInfoContainer.appendChild(timeInfo);
+
+                currentTime += task.duration;
+            });
+        }
+    </script>
+
+</body>
+</html>
