@@ -85,7 +85,7 @@ Contact
 If you have any questions, feel free to reach out:
 
 GitHub: rajshekhar-pandit
-Email: your-pandeyrajshekhar63@gmail.com
+Email: pandeyrajshekhar63@gmail.com
 Screenshots
 (Optional – Add screenshots of the UI or Gantt charts here)
 
